@@ -58,7 +58,7 @@ def compute_metrics(p: EvalPrediction):
 
 
 data = pd.read_csv('DATASET/formated.csv')
-data = data.sample(1000, random_state=10)
+# data = data.sample(1000, random_state=10)
 data = data.iloc[:, :-1]
 labels = list(data.columns[:-1])
 
