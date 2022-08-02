@@ -58,7 +58,7 @@ def compute_metrics(p: EvalPrediction):
 
 
 data = pd.read_csv('DATASET/formated.csv')
-data = data.sample(500, random_state=10)
+data = data.sample(1000, random_state=10)
 data = data.iloc[:, :-1]
 labels = list(data.columns[:-1])
 
@@ -85,7 +85,6 @@ metric_name = "f1"
 args = TrainingArguments(
     f"bert-finetuned-multi-label-topic",
     evaluation_strategy = "epoch",
-    save_strategy = "epoch",
     learning_rate=2e-5,
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
@@ -94,6 +93,7 @@ args = TrainingArguments(
     load_best_model_at_end=True,
     metric_for_best_model=metric_name,
     #push_to_hub=True,
+    no_cuda=True
 )
 
 #forward pass
