@@ -95,8 +95,8 @@ trainer = Trainer(
     loss_func=loss_func,
     optimizer=optimizer,
 )
-train_dataset = torch.tensor(train)
-test_dataset = torch.tensor(test)
+train_dataset = torch.tensor(train.values)
+test_dataset = torch.tensor(test.values)
 trainer.train(
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
