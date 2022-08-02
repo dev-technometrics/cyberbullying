@@ -7,7 +7,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trai
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
 from transformers import EvalPrediction
 import torch
-from accelerate import Accelerator
+
 
 bert_model = "bert-base-multilingual-cased"
 tokenizer = AutoTokenizer.from_pretrained(bert_model)
@@ -97,8 +97,6 @@ args = TrainingArguments(
     #push_to_hub=True,
     # no_cuda=True
 )
-accelerator = Accelerator()
-model = accelerator.prepare(model)
 
 #forward pass
 outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
@@ -107,6 +105,7 @@ outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
 trainer = Trainer(
     model,
     args,
+    is_model_parallel = True,
     train_dataset=encoded_dataset["train"],
     eval_dataset=encoded_dataset["test"],
     tokenizer=tokenizer,
