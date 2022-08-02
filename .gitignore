@@ -1,0 +1,6 @@
+.idea/
+__pycache__/
+venv/
+DATASET/
+resources/
+bert-finetuned-multi-label-topic/
