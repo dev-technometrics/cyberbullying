@@ -81,8 +81,9 @@ model = AutoModelForSequenceClassification.from_pretrained(bert_model,
                                                            id2label=id2label,
                                                            label2id=label2id)
 
-batch_size = 8
+batch_size = 32
 metric_name = "f1"
+epoch = 100
 args = TrainingArguments(
     f"bert-finetuned-multi-label-topic",
     evaluation_strategy = "epoch",
@@ -90,7 +91,7 @@ args = TrainingArguments(
     learning_rate=2e-5,
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
-    num_train_epochs=5,
+    num_train_epochs=epoch,
     weight_decay=0.01,
     load_best_model_at_end=True,
     metric_for_best_model=metric_name,
