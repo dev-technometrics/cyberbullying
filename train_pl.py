@@ -2,10 +2,8 @@ import pandas as pd
 import numpy as np
 import datasets
 from datasets.dataset_dict import Dataset
-from pytorch_accelerated import Trainer
 from sklearn.model_selection import train_test_split
-from torch import nn, optim
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
 from transformers import EvalPrediction
 import torch
@@ -83,42 +81,50 @@ model = AutoModelForSequenceClassification.from_pretrained(bert_model,
                                                            id2label=id2label,
                                                            label2id=label2id)
 
+batch_size = 8
+metric_name = "f1"
+args = TrainingArguments(
+    f"bert-finetuned-multi-label-topic",
+    evaluation_strategy = "epoch",
+    save_strategy = "epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=batch_size,
+    per_device_eval_batch_size=batch_size,
+    num_train_epochs=5,
+    weight_decay=0.01,
+    load_best_model_at_end=True,
+    metric_for_best_model=metric_name,
+    #push_to_hub=True,
+    # no_cuda=True
+)
 
 #forward pass
 outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
                 labels=encoded_dataset['train'][0]['labels'].unsqueeze(0))
 
-loss_func = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 trainer = Trainer(
     model,
-    loss_func=loss_func,
-    optimizer=optimizer,
+    args,
+    is_model_parallel = True,
+    train_dataset=encoded_dataset["train"],
+    eval_dataset=encoded_dataset["test"],
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics
 )
-train_dataset = torch.tensor(train.values)
-test_dataset = torch.tensor(test.values)
-trainer.train(
-        train_dataset=train_dataset,
-        eval_dataset=test_dataset,
-        num_epochs=3,
-        per_device_batch_size=32,
-    )
-trainer.evaluate(
-    dataset=test_dataset,
-    per_device_batch_size=64,
-)
-# trainer.save_model("resources/model.pt")
-#
-# text = "অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া"
-# encoding = tokenizer(text, return_tensors="pt")
-# encoding = {k: v.to(trainer.model.device) for k,v in encoding.items()}
-# outputs = trainer.model(**encoding)
-# logits = outputs.logits
-# # apply sigmoid + threshold
-# sigmoid = torch.nn.Sigmoid()
-# probs = sigmoid(logits.squeeze().cpu())
-# predictions = np.zeros(probs.shape)
-# predictions[np.where(probs >= 0.5)] = 1
-# # turn predicted id's into actual label names
-# predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
-# print(predicted_labels)
+trainer.train()
+trainer.evaluate()
+trainer.save_model("resources/model.pt")
+
+text = "অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া"
+encoding = tokenizer(text, return_tensors="pt")
+encoding = {k: v.to(trainer.model.device) for k,v in encoding.items()}
+outputs = trainer.model(**encoding)
+logits = outputs.logits
+# apply sigmoid + threshold
+sigmoid = torch.nn.Sigmoid()
+probs = sigmoid(logits.squeeze().cpu())
+predictions = np.zeros(probs.shape)
+predictions[np.where(probs >= 0.5)] = 1
+# turn predicted id's into actual label names
+predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
+print(predicted_labels)

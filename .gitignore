@@ -2,5 +2,8 @@
 __pycache__/
 venv/
 DATASET/
+REPORT/
 resources/
+tmp_trainer/
 bert-finetuned-multi-label-topic/
+test.py

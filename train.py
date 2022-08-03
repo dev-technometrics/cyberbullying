@@ -59,7 +59,7 @@ def compute_metrics(p: EvalPrediction):
 
 
 data = pd.read_csv('DATASET/formated.csv')
-# data = data.sample(1000, random_state=10)
+data = data.sample(200, random_state=10)
 data = data.iloc[:, :-1]
 labels = list(data.columns[:-1])
 
@@ -105,7 +105,6 @@ outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
 trainer = Trainer(
     model,
     args,
-    is_model_parallel = True,
     train_dataset=encoded_dataset["train"],
     eval_dataset=encoded_dataset["test"],
     tokenizer=tokenizer,
