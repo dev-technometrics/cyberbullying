@@ -75,7 +75,7 @@ def main(bert_models):
         )
         trainer.train()
         trainer.evaluate()
-        trainer.save_model(f"resources/model_{bert_model.replce('/', '_')}.pt")
+        trainer.save_model(f"resources/model_{bert_model.replace('/', '_')}.pt")
 
         text = "অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া"
         encoding = text_encoder.tokenizer(text, return_tensors="pt")
