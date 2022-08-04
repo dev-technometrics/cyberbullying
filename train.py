@@ -98,6 +98,6 @@ if __name__ == "__main__":
     #                MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
     #                MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
 
-    bert_models = [MODEL_BERT_NEUROPARK_SAHAJ]
+    bert_models = [MODEL_BERT_INDIC_NER]
 
     main(bert_models)
