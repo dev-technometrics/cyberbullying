@@ -10,3 +10,4 @@ def make_dir_if_not_exists(file_path):
                 path = path + dir + '/'
                 if not os.path.exists(path):
                     os.mkdir(path)
+

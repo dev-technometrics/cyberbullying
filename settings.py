@@ -10,6 +10,11 @@ MODEL_BERT_MULTILANGUAL_CASED = 'bert-base-multilingual-cased'
 MODEL_BERT_CESBUETNLP = 'csebuetnlp/banglabert'
 MODEL_BERT_MONSOON_NLP = 'monsoon-nlp/bangla-electra'
 MODEL_BERT_SAGORSARKAR = 'sagorsarker/bangla-bert-base'
+MODEL_BERT_INDIC_NER = 'ai4bharat/IndicNER'
+MODEL_BERT_NURALSPACE = 'neuralspace-reverie/indic-transformers-bn-distilbert'
+MODEL_BERT_INDIC_HATE_SPEECH = 'Hate-speech-CNERG/indic-abusive-allInOne-MuRIL'
+MODEL_BERT_NEUROPARK_SAHAJ_NER = 'neuropark/sahajBERT-NER'
+MODEL_BERT_NEUROPARK_SAHAJ = 'neuropark/sahajBERT'
 
 MODEL_SELECTED = MODEL_FASTTEXT_DEEP_ANN
 
