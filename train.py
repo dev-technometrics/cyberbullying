@@ -59,7 +59,8 @@ def main(bert_models):
                                                                    problem_type="multi_label_classification",
                                                                    num_labels=len(labels),
                                                                    id2label=id2label,
-                                                                   label2id=label2id)
+                                                                   label2id=label2id,
+                                                                   ignore_mismatched_sizes=True)
 
         #forward pass
         outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
@@ -93,8 +94,10 @@ def main(bert_models):
 
 if __name__ == "__main__":
 
-    bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
-                   MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
-                   MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
+    # bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
+    #                MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
+    #                MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
+
+    bert_models = [MODEL_BERT_NEUROPARK_SAHAJ]
 
     main(bert_models)
