@@ -14,7 +14,7 @@ from settings import MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL
     MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ
 
 data = pd.read_csv('DATASET/formated.csv')
-data = data.sample(200, random_state=10)
+# data = data.sample(200, random_state=10)
 text_cleaner = TextCleaner()
 data['text'] = data['text'].apply(text_cleaner.clean_text_bn)
 data = data.iloc[:, :-1]
@@ -26,9 +26,9 @@ my_dataset_dict = datasets.DatasetDict({"train":train_dataset,"test":test_datase
 id2label = {idx:label for idx, label in enumerate(labels)}
 label2id = {label:idx for idx, label in enumerate(labels)}
 id2label = {idx:label for idx, label in enumerate(labels)}
-batch_size = 8
+batch_size = 32
 metric_name = "f1"
-epoch = 2
+epoch = 100
 args = TrainingArguments(
     f"bert-finetuned-multi-label-topic",
     evaluation_strategy = "epoch",
@@ -94,10 +94,10 @@ def main(bert_models):
 
 if __name__ == "__main__":
 
-    # bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
-    #                MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
-    #                MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
+    bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
+                   MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
+                   MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
 
-    bert_models = [MODEL_BERT_INDIC_NER]
+    # bert_models = [MODEL_BERT_INDIC_NER]
 
     main(bert_models)
