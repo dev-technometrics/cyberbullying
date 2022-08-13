@@ -1,4 +1,13 @@
 import os
+def make_dir_if_not_exists(file_path):
+    dirs = file_path.split('/')
+    if dirs:
+        path = ''
+        for dir in dirs:
+            if dir:
+                path = path + dir + '/'
+                if not os.path.exists(path):
+                    os.mkdir(path)
 
 MODEL_BIDIRECTIONAL_GRU = "bi_gru"
 MODEL_CNN_BIDIRECTIONAL_LSTM = "cnn_bi_lstm"
@@ -25,6 +34,8 @@ DIR_EDA = 'EDA/'
 DIR_IMAGES_EDA = DIR_REPORT + 'IMAGES/EDA/'
 DIR_IMAGES_HISTORY = DIR_REPORT + 'IMAGES/HISTORY/'
 DIR_PERFORMENCE_REPORT = DIR_REPORT + 'PERFORMENCE/'
+DIR_PERFORMENCE_REPORT_PYTORCH = DIR_PERFORMENCE_REPORT + 'PYTORCH/'
 DIR_RESOURCES = DIR_BASE + 'resources/'
-
-
+for i in [DIR_DATASET, DIR_REPORT, DIR_EDA, DIR_IMAGES_EDA, DIR_IMAGES_HISTORY, DIR_PERFORMENCE_REPORT,
+          DIR_PERFORMENCE_REPORT_PYTORCH, DIR_RESOURCES]:
+    make_dir_if_not_exists(i)
