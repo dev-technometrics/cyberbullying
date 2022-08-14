@@ -11,41 +11,41 @@ from preprocessing.cleaning import TextCleaner
 from preprocessing.encoding import TextEncoder
 from settings import MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP, \
     MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH, \
-    MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ
-
-data = pd.read_csv('DATASET/formated.csv')
-# data = data.sample(200, random_state=10)
-text_cleaner = TextCleaner()
-data['text'] = data['text'].apply(text_cleaner.clean_text_bn)
-data = data.iloc[:, :-1]
-labels = list(data.columns[:-1])
-train, test = train_test_split(data, test_size=0.2, random_state=0)
-train_dataset = Dataset.from_dict(train)
-test_dataset = Dataset.from_dict(test)
-my_dataset_dict = datasets.DatasetDict({"train":train_dataset,"test":test_dataset})
-id2label = {idx:label for idx, label in enumerate(labels)}
-label2id = {label:idx for idx, label in enumerate(labels)}
-id2label = {idx:label for idx, label in enumerate(labels)}
-batch_size = 32
-metric_name = "f1"
-epoch = 100
-args = TrainingArguments(
-    f"bert-finetuned-multi-label-topic",
-    evaluation_strategy = "epoch",
-    save_strategy = "epoch",
-    learning_rate=2e-5,
-    per_device_train_batch_size=batch_size,
-    per_device_eval_batch_size=batch_size,
-    num_train_epochs=epoch,
-    weight_decay=0.01,
-    load_best_model_at_end=True,
-    metric_for_best_model=metric_name,
-    #push_to_hub=True,
-    # no_cuda=True
-)
-performence_calculator = PerformenceCalculator()
+    MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ, DIR_DATASET, DIR_RESOURCES
+from training.training_flair import FlairTrainer
 
 def main(bert_models):
+    data = pd.read_csv('DATASET/formated.csv')
+    # data = data.sample(200, random_state=10)
+    text_cleaner = TextCleaner()
+    data['text'] = data['text'].apply(text_cleaner.clean_text_bn)
+    data = data.iloc[:, :-1]
+    labels = list(data.columns[:-1])
+    train, test = train_test_split(data, test_size=0.2, random_state=0)
+    train_dataset = Dataset.from_dict(train)
+    test_dataset = Dataset.from_dict(test)
+    my_dataset_dict = datasets.DatasetDict({"train": train_dataset, "test": test_dataset})
+    id2label = {idx: label for idx, label in enumerate(labels)}
+    label2id = {label: idx for idx, label in enumerate(labels)}
+    id2label = {idx: label for idx, label in enumerate(labels)}
+    batch_size = 32
+    metric_name = "f1"
+    epoch = 100
+    args = TrainingArguments(
+        f"bert-finetuned-multi-label-topic",
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        learning_rate=2e-5,
+        per_device_train_batch_size=batch_size,
+        per_device_eval_batch_size=batch_size,
+        num_train_epochs=epoch,
+        weight_decay=0.01,
+        load_best_model_at_end=True,
+        metric_for_best_model=metric_name,
+        # push_to_hub=True,
+        # no_cuda=True
+    )
+    performence_calculator = PerformenceCalculator()
 
     for bert_model in bert_models:
         print('************************************')
@@ -92,12 +92,32 @@ def main(bert_models):
         predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
         print(predicted_labels)
 
+def train_flair(bert_models):
+
+    for bert_model in bert_models:
+        print('************************************')
+        print(f'Started {bert_model} model training')
+        print('************************************')
+
+        flair_trainer = FlairTrainer(label_type='topic')
+
+        model_path = f'{DIR_RESOURCES}/FLAIR/{bert_model.replace("/", "_")}'
+
+        flair_trainer.train(pretrained_model=bert_model,
+                            is_multi_label=True,
+                            model_path=model_path,
+                            data_folder=DIR_DATASET)
+
+        labels = flair_trainer.predict(model_path=model_path,
+            text='অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া')
+        print(labels)
+
 if __name__ == "__main__":
 
-    bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
-                   MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
-                   MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
+    # bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
+    #                MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
+    #                MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
 
-    # bert_models = [MODEL_BERT_INDIC_NER]
+    bert_models = [MODEL_BERT_MULTILANGUAL_CASED]
 
-    main(bert_models)
+    train_flair(bert_models)
