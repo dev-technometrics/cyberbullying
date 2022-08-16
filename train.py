@@ -6,12 +6,16 @@ from sklearn.model_selection import train_test_split
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 import torch
 
+from accuracy_calculation.accuracy_flair import calculate_accuracy_flair, calculate_accuracy_fasttext
 from performence_calculation.metrics_calculation import PerformenceCalculator
 from preprocessing.cleaning import TextCleaner
+from preprocessing.data_preparation import DataPreparation
 from preprocessing.encoding import TextEncoder
 from settings import MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP, \
     MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH, \
-    MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ, DIR_DATASET, DIR_RESOURCES
+    MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ, DIR_DATASET, DIR_RESOURCES, DIR_MODEL_FLAIR, \
+    DIR_DATASET_FASTTEXT, DIR_MODEL_FASTTEXT
+from training.training_fasttext import FasttextTrainer
 from training.training_flair import FlairTrainer
 
 def main(bert_models):
@@ -92,8 +96,7 @@ def main(bert_models):
         predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
         print(predicted_labels)
 
-def train_flair(bert_models):
-
+def train_flair(bert_models, test):
     for bert_model in bert_models:
         print('************************************')
         print(f'Started {bert_model} model training')
@@ -101,23 +104,51 @@ def train_flair(bert_models):
 
         flair_trainer = FlairTrainer(label_type='topic')
 
-        model_path = f'{DIR_RESOURCES}/FLAIR/{bert_model.replace("/", "_")}'
+        model_path = f'{DIR_MODEL_FLAIR}{bert_model.replace("/", "_")}'
 
         flair_trainer.train(pretrained_model=bert_model,
                             is_multi_label=True,
                             model_path=model_path,
-                            data_folder=DIR_DATASET)
+                            data_folder=DIR_DATASET_FASTTEXT)
 
-        labels = flair_trainer.predict(model_path=model_path,
+        labels = flair_trainer.predict(model_path=f'{model_path}/final-model.pt',
             text='অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া')
         print(labels)
 
+
+    calculate_accuracy_flair(bert_models, test)
+
+def train_fastext(test):
+    fasttext_params = {
+        'input': f'{DIR_DATASET_FASTTEXT}train.txt',
+        'lr': 0.1,
+        'lrUpdateRate': 1000,
+        'thread': 8,
+        'epoch': 100,
+        'wordNgrams': 2,
+        'dim': 1000,
+        'verbose': 5,
+        'loss': 'ova'
+    }
+    model_filepath = f'{DIR_MODEL_FASTTEXT}final-model_pretrained.bin'
+    fasttext_trainer = FasttextTrainer(fasttext_params)
+    fasttext_trainer.train_supervised(model_filepath)
+    calculate_accuracy_fasttext('fasttext-pretrained', model_filepath, test)
+
 if __name__ == "__main__":
+
+    data_preparation = DataPreparation()
+    data = pd.read_csv(f'{DIR_DATASET}formated.csv')
+    # data = data.sample(100, random_state=10)
+    train, test = train_test_split(data, test_size=0.2, random_state=0)
+    data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt')
+    data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt')
+
 
     # bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
     #                MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
     #                MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
-
     bert_models = [MODEL_BERT_MULTILANGUAL_CASED]
 
-    train_flair(bert_models)
+    # train_flair(bert_models, test)
+    train_fastext(test)

@@ -3,6 +3,9 @@ __pycache__/
 venv/
 DATASET/
 REPORT/
+FLAIR/
+FASTTEXT/
+PYTORCH/
 tmp_trainer/
 bert-finetuned-multi-label-topic/
 test.py

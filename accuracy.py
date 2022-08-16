@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import multilabel_confusion_matrix, classification_report
 
+from accuracy_calculation.accuracy_flair import calculate_accuracy_flair
 from prediction import Predictor
 from preprocessing.cleaning import TextCleaner
 from settings import MODEL_BERT_MULTILANGUAL_CASED, DIR_PERFORMENCE_REPORT, DIR_PERFORMENCE_REPORT_PYTORCH, \
@@ -41,14 +42,15 @@ def main(bert_models):
         with open(f"{DIR_PERFORMENCE_REPORT_PYTORCH}{bert_model.replace('/', '_')}_cr.txt", 'w') as cr_file:
             cr_file.write(str(cr))
 
+
 if __name__ == "__main__":
 
     bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
                    MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
                    MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
 
-    # bert_models = [MODEL_BERT_MULTILANGUAL_CASED]
+    # bert_models = [MODEL_BERT_INDIC_NER]
 
-    main(bert_models)
+    calculate_accuracy_flair(bert_models)
 
 

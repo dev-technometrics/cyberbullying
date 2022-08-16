@@ -113,7 +113,7 @@ trainer = Trainer(
 )
 trainer.train()
 trainer.evaluate()
-trainer.save_model("resources/model.pt")
+trainer.save_model("resources/final-model.pt")
 
 text = "অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া"
 encoding = tokenizer(text, return_tensors="pt")
