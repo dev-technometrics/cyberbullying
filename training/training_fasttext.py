@@ -31,7 +31,7 @@ class FasttextPredictor():
         labels = self.classifier.predict(text, k=len(self.label2id))
         probs = labels[1]
         predictions = np.zeros(probs.shape)
-        predictions[np.where(probs >= 0.5)] = 1
+        predictions[np.where(probs >= 0.333)] = 1
         return predictions
 
     def get_prediction_array(self, text):
