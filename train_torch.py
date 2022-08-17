@@ -56,46 +56,53 @@ def train_pytorch(bert_models, train, test):
         print('************************************')
         print(f'Started {bert_model} model training')
         print('************************************')
-        text_encoder = TextEncoder(bert_model, labels)
-        encoded_dataset = my_dataset_dict.map(text_encoder.preprocess_data, batched=True,
-                                              remove_columns=my_dataset_dict['train'].column_names)
-        encoded_dataset.set_format("torch")
-        model = AutoModelForSequenceClassification.from_pretrained(bert_model,
-                                                                   problem_type="multi_label_classification",
-                                                                   num_labels=len(labels),
-                                                                   id2label=id2label,
-                                                                   label2id=label2id,
-                                                                   ignore_mismatched_sizes=True)
+        try:
+            text_encoder = TextEncoder(bert_model, labels)
+            encoded_dataset = my_dataset_dict.map(text_encoder.preprocess_data, batched=True,
+                                                  remove_columns=my_dataset_dict['train'].column_names)
+            encoded_dataset.set_format("torch")
+            model = AutoModelForSequenceClassification.from_pretrained(bert_model,
+                                                                       problem_type="multi_label_classification",
+                                                                       num_labels=len(labels),
+                                                                       id2label=id2label,
+                                                                       label2id=label2id,
+                                                                       ignore_mismatched_sizes=True)
 
-        #forward pass
-        outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
-                        labels=encoded_dataset['train'][0]['labels'].unsqueeze(0))
+            #forward pass
+            outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
+                            labels=encoded_dataset['train'][0]['labels'].unsqueeze(0))
 
-        trainer = Trainer(
-            model,
-            args,
-            train_dataset=encoded_dataset["train"],
-            eval_dataset=encoded_dataset["test"],
-            tokenizer=text_encoder.tokenizer,
-            compute_metrics=performence_calculator.compute_metrics
-        )
-        trainer.train()
-        trainer.evaluate()
-        trainer.save_model(f"{DIR_MODEL_PYTORCH}{bert_model.replace('/', '_')}.pt")
+            trainer = Trainer(
+                model,
+                args,
+                train_dataset=encoded_dataset["train"],
+                eval_dataset=encoded_dataset["test"],
+                tokenizer=text_encoder.tokenizer,
+                compute_metrics=performence_calculator.compute_metrics
+            )
+            trainer.train()
+            trainer.evaluate()
+            trainer.save_model(f"{DIR_MODEL_PYTORCH}{bert_model.replace('/', '_')}.pt")
 
-        text = "অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া"
-        encoding = text_encoder.tokenizer(text, return_tensors="pt")
-        encoding = {k: v.to(trainer.model.device) for k,v in encoding.items()}
-        outputs = trainer.model(**encoding)
-        logits = outputs.logits
-        # apply sigmoid + threshold
-        sigmoid = torch.nn.Sigmoid()
-        probs = sigmoid(logits.squeeze().cpu())
-        predictions = np.zeros(probs.shape)
-        predictions[np.where(probs >= 0.5)] = 1
-        # turn predicted id's into actual label names
-        predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
-        print(predicted_labels)
+            text = "অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া"
+            encoding = text_encoder.tokenizer(text, return_tensors="pt")
+            encoding = {k: v.to(trainer.model.device) for k,v in encoding.items()}
+            outputs = trainer.model(**encoding)
+            logits = outputs.logits
+            # apply sigmoid + threshold
+            sigmoid = torch.nn.Sigmoid()
+            probs = sigmoid(logits.squeeze().cpu())
+            predictions = np.zeros(probs.shape)
+            predictions[np.where(probs >= 0.5)] = 1
+            # turn predicted id's into actual label names
+            predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
+            print(predicted_labels)
+        except Exception as e:
+
+            print('************************************')
+            print(f'error {bert_model} model training')
+            print(e)
+            print('************************************')
 
     calculate_accuracy_pytorch(bert_models, test)
 
@@ -149,8 +156,8 @@ if __name__ == "__main__":
     data = pd.read_csv(f'{DIR_DATASET}formated.csv')
     # data = data.sample(100, random_state=10)
     train, test = train_test_split(data, test_size=0.2, random_state=0)
-    data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt')
-    data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt')
+    # data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt')
+    # data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt')
 
 
     bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
@@ -158,6 +165,6 @@ if __name__ == "__main__":
                    MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
     # bert_models = [MODEL_BERT_NEUROPARK_SAHAJ]
 
-    train_flair(bert_models, test)
+    # train_flair(bert_models, test)
     # train_fastext(test)
     train_pytorch(bert_models, train, test)
