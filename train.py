@@ -149,8 +149,8 @@ if __name__ == "__main__":
     data = pd.read_csv(f'{DIR_DATASET}formated.csv')
     # data = data.sample(100, random_state=10)
     train, test = train_test_split(data, test_size=0.2, random_state=0)
-    # data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt')
-    # data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt')
+    data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt')
+    data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt')
 
 
     bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
