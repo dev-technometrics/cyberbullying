@@ -38,3 +38,27 @@ class FasttextPredictor():
         predictions = self.predict(text)
         labels = [self.id2label[str(idx)] for idx, label in enumerate(predictions) if label == 1.0]
         return predictions, labels
+
+class PytorchPredictor():
+    def __init__(self,model_filepath):
+        self.model_filepath = model_filepath
+        self.classifier = fasttext.load_model(self.model_filepath)
+        with open('resources/config.json') as file:
+            config = json.load(file)
+        self.label2id = config['label2id']
+        self.id2label = config['id2label']
+        self.label_dict = {}
+        for l in self.label2id:
+            self.label_dict[f'{l.replace(", ", "_").replace(": ", "_").replace(" ", "_").replace(" - ", "_").replace("/", "_")}'] = l
+
+    def predict(self, text):
+        labels = self.classifier.predict(text, k=len(self.label2id))
+        probs = labels[1]
+        predictions = np.zeros(probs.shape)
+        predictions[np.where(probs >= 0.333)] = 1
+        return predictions
+
+    def get_prediction_array(self, text):
+        predictions = self.predict(text)
+        labels = [self.id2label[str(idx)] for idx, label in enumerate(predictions) if label == 1.0]
+        return predictions, labels

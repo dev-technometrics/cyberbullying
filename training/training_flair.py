@@ -1,12 +1,15 @@
 import json
-
+import numpy as np
+import torch
 from flair.embeddings import TransformerDocumentEmbeddings
 from flair.models import TextClassifier
 from flair.trainers import ModelTrainer
 from flair.data import Corpus
 from flair.datasets import ClassificationCorpus
 from flair.data import Sentence
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer
 
+from settings import DIR_RESOURCES, DIR_MODEL_PYTORCH
 from utils import make_dir_if_not_exists
 
 
@@ -38,7 +41,7 @@ class FlairTrainer:
         self.trainer.fine_tune(self.model_path,
                           learning_rate=5.0e-5,
                           mini_batch_size=4,
-                          max_epochs=2,
+                          max_epochs=10,
                           )
 
     def predict(self, model_path, text):
@@ -46,12 +49,13 @@ class FlairTrainer:
         sentence = Sentence(text)
         classifier.predict(sentence)
         return sentence.labels
+
 class FlairPredictor(FlairTrainer):
     def __init__(self, model_path):
         super().__init__('topic')
         self.model_path = model_path
         self.classifier = TextClassifier.load(self.model_path)
-        with open('resources/config.json') as file:
+        with open( f"{DIR_RESOURCES}config.json") as file:
             config = json.load(file)
         self.label2id = config['label2id']
         self.label_dict = {}
@@ -78,3 +82,30 @@ class FlairPredictor(FlairTrainer):
             l = self.label_dict[y]
             preds[self.label2id[l]] = 1
         return preds
+
+class PytorchModelPredictor():
+    def __init__(self, bert_model, model_path):
+        self.model_path = model_path
+        self.model = AutoModelForSequenceClassification.from_pretrained(self.model_path)
+        self.bert_model = bert_model
+        self.tokenizer = AutoTokenizer.from_pretrained(bert_model)
+        self.trainer = Trainer(model=self.model)
+        with open( f"{DIR_RESOURCES}config.json") as file:
+            config = json.load(file)
+        self.id2label = config['id2label']
+
+    def predict(self, texts, threshold=0.5):
+        if isinstance(texts, str):
+            texts = [texts]
+        encoding = self.tokenizer(texts, return_tensors="pt")
+        encoding = {k: v.to(self.trainer.model.device) for k, v in encoding.items()}
+        outputs = self.trainer.model(**encoding)
+        logits = outputs.logits
+        # apply sigmoid + threshold
+        sigmoid = torch.nn.Sigmoid()
+        probs = sigmoid(logits.squeeze().cpu())
+        predictions = np.zeros(probs.shape)
+        predictions[np.where(probs >= threshold)] = 1
+        # turn predicted id's into actual label names
+        predicted_labels = [self.id2label[str(idx)] for idx, label in enumerate(predictions) if label == 1.0]
+        return predicted_labels, predictions
