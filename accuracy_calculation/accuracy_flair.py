@@ -31,11 +31,11 @@ def calculate_accuracy_flair(bert_models, data):
             y_true = y_true * 1
             cm = multilabel_confusion_matrix(y_true, y_pred)
             print(cm)
-            with open(f"{DIR_PERFORMENCE_REPORT_FASTTEXT}{bert_model.replace('/', '_')}_cm.txt", 'w') as cm_file:
+            with open(f"{DIR_PERFORMENCE_REPORT_FLAIR}{bert_model.replace('/', '_')}_cm.txt", 'w') as cm_file:
                 cm_file.write(str(cm))
             cr = classification_report(y_true, y_pred, target_names=flair_predictor.label2id.keys())
             print(cr)
-            with open(f"{DIR_PERFORMENCE_REPORT_FASTTEXT}{bert_model.replace('/', '_')}_cr.txt", 'w') as cr_file:
+            with open(f"{DIR_PERFORMENCE_REPORT_FLAIR}{bert_model.replace('/', '_')}_cr.txt", 'w') as cr_file:
                 cr_file.write(str(cr))
 
         except Exception as e:
