@@ -100,29 +100,29 @@ def train_pytorch(bert_models, train, test):
     calculate_accuracy_pytorch(bert_models, test)
 
 def train_flair(bert_models, test):
-    for bert_model in bert_models:
-        print('************************************')
-        print(f'Started {bert_model} model training')
-        print('************************************')
-
-        try:
-            flair_trainer = FlairTrainer(label_type='topic')
-
-            model_path = f'{DIR_MODEL_FLAIR}{bert_model.replace("/", "_")}'
-
-            flair_trainer.train(pretrained_model=bert_model,
-                                is_multi_label=True,
-                                model_path=model_path,
-                                data_folder=DIR_DATASET_FASTTEXT)
-
-            labels = flair_trainer.predict(model_path=f'{model_path}/final-model.pt',
-                text='অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া')
-            print(labels)
-        except Exception as e:
-            print('************************************')
-            print(f'error {bert_model} model training')
-            print(e)
-            print('************************************')
+    # for bert_model in bert_models:
+    #     print('************************************')
+    #     print(f'Started {bert_model} model training')
+    #     print('************************************')
+    #
+    #     try:
+    #         flair_trainer = FlairTrainer(label_type='topic')
+    #
+    #         model_path = f'{DIR_MODEL_FLAIR}{bert_model.replace("/", "_")}'
+    #
+    #         flair_trainer.train(pretrained_model=bert_model,
+    #                             is_multi_label=True,
+    #                             model_path=model_path,
+    #                             data_folder=DIR_DATASET_FASTTEXT)
+    #
+    #         labels = flair_trainer.predict(model_path=f'{model_path}/final-model.pt',
+    #             text='অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া')
+    #         print(labels)
+    #     except Exception as e:
+    #         print('************************************')
+    #         print(f'error {bert_model} model training')
+    #         print(e)
+    #         print('************************************')
 
     calculate_accuracy_flair(bert_models, test)
 
@@ -149,8 +149,8 @@ if __name__ == "__main__":
     data = pd.read_csv(f'{DIR_DATASET}formated.csv')
     # data = data.sample(100, random_state=10)
     train, test = train_test_split(data, test_size=0.2, random_state=0)
-    data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt')
-    data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt')
+    # data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt')
+    # data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt')
 
 
     bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
@@ -160,4 +160,4 @@ if __name__ == "__main__":
 
     train_flair(bert_models, test)
     # train_fastext(test)
-    train_pytorch(bert_models, train, test)
+    # train_pytorch(bert_models, train, test)

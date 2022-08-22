@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 
 from preprocessing.cleaning import TextCleaner
 from settings import DIR_RESOURCES, DIR_PERFORMENCE_REPORT_FLAIR, DIR_PERFORMENCE_REPORT_FASTTEXT, DIR_MODEL_FASTTEXT, \
-    DIR_MODEL_PYTORCH, DIR_PERFORMENCE_REPORT_PYTORCH
+    DIR_MODEL_PYTORCH, DIR_PERFORMENCE_REPORT_PYTORCH, DIR_MODEL_FLAIR
 from training.training_fasttext import FasttextPredictor
 from training.training_flair import FlairTrainer, FlairPredictor, PytorchModelPredictor
 
@@ -20,7 +20,7 @@ def calculate_accuracy_flair(bert_models, data):
         print(f'Started {bert_model} model accuracy calculation')
         print('************************************')
         try:
-            model_path = f'{DIR_RESOURCES}FLAIR/{bert_model.replace("/", "_")}'
+            model_path = f'{DIR_MODEL_FLAIR}{bert_model.replace("/", "_")}'
             flair_predictor = FlairPredictor(f'{model_path}/final-model.pt')
             predictions = []
             for text in texts:
