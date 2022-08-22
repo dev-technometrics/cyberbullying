@@ -20,89 +20,89 @@ from training.training_fasttext import FasttextTrainer
 from training.training_flair import FlairTrainer
 
 def train_pytorch(bert_models, train, test):
-    text_cleaner = TextCleaner()
-    data = train
-    data['text'] = data['text'].apply(text_cleaner.clean_text_bn)
-    data = data.iloc[:, :-1]
-    train = train.iloc[:, :-1]
-    test = test.iloc[:, :-1]
-    labels = list(data.columns[:-1])
-    train_dataset = Dataset.from_dict(train)
-    test_dataset = Dataset.from_dict(test)
-    my_dataset_dict = datasets.DatasetDict({"train": train_dataset, "test": test_dataset})
-    id2label = {idx: label for idx, label in enumerate(labels)}
-    label2id = {label: idx for idx, label in enumerate(labels)}
-    id2label = {idx: label for idx, label in enumerate(labels)}
-    batch_size = 32
-    metric_name = "f1"
-    epoch = 10
-    args = TrainingArguments(
-        f"bert-finetuned-multi-label-topic",
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        learning_rate=2e-5,
-        per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=batch_size,
-        num_train_epochs=epoch,
-        weight_decay=0.01,
-        load_best_model_at_end=True,
-        metric_for_best_model=metric_name,
-        # push_to_hub=True,
-        # no_cuda=True
-    )
-    performence_calculator = PerformenceCalculator()
-
-    for bert_model in bert_models:
-        print('************************************')
-        print(f'Started {bert_model} model training')
-        print('************************************')
-        try:
-            text_encoder = TextEncoder(bert_model, labels)
-            encoded_dataset = my_dataset_dict.map(text_encoder.preprocess_data, batched=True,
-                                                  remove_columns=my_dataset_dict['train'].column_names)
-            encoded_dataset.set_format("torch")
-            model = AutoModelForSequenceClassification.from_pretrained(bert_model,
-                                                                       problem_type="multi_label_classification",
-                                                                       num_labels=len(labels),
-                                                                       id2label=id2label,
-                                                                       label2id=label2id,
-                                                                       ignore_mismatched_sizes=True)
-
-            #forward pass
-            outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
-                            labels=encoded_dataset['train'][0]['labels'].unsqueeze(0))
-
-            trainer = Trainer(
-                model,
-                args,
-                train_dataset=encoded_dataset["train"],
-                eval_dataset=encoded_dataset["test"],
-                tokenizer=text_encoder.tokenizer,
-                compute_metrics=performence_calculator.compute_metrics
-            )
-            trainer.train()
-            trainer.evaluate()
-            trainer.save_model(f"{DIR_MODEL_PYTORCH}{bert_model.replace('/', '_')}.pt")
-
-            text = "অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া"
-            encoding = text_encoder.tokenizer(text, return_tensors="pt")
-            encoding = {k: v.to(trainer.model.device) for k,v in encoding.items()}
-            outputs = trainer.model(**encoding)
-            logits = outputs.logits
-            # apply sigmoid + threshold
-            sigmoid = torch.nn.Sigmoid()
-            probs = sigmoid(logits.squeeze().cpu())
-            predictions = np.zeros(probs.shape)
-            predictions[np.where(probs >= 0.5)] = 1
-            # turn predicted id's into actual label names
-            predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
-            print(predicted_labels)
-        except Exception as e:
-
-            print('************************************')
-            print(f'error {bert_model} model training')
-            print(e)
-            print('************************************')
+    # text_cleaner = TextCleaner()
+    # data = train
+    # data['text'] = data['text'].apply(text_cleaner.clean_text_bn)
+    # data = data.iloc[:, :-1]
+    # train = train.iloc[:, :-1]
+    # test = test.iloc[:, :-1]
+    # labels = list(data.columns[:-1])
+    # train_dataset = Dataset.from_dict(train)
+    # test_dataset = Dataset.from_dict(test)
+    # my_dataset_dict = datasets.DatasetDict({"train": train_dataset, "test": test_dataset})
+    # id2label = {idx: label for idx, label in enumerate(labels)}
+    # label2id = {label: idx for idx, label in enumerate(labels)}
+    # id2label = {idx: label for idx, label in enumerate(labels)}
+    # batch_size = 32
+    # metric_name = "f1"
+    # epoch = 10
+    # args = TrainingArguments(
+    #     f"bert-finetuned-multi-label-topic",
+    #     evaluation_strategy="epoch",
+    #     save_strategy="epoch",
+    #     learning_rate=2e-5,
+    #     per_device_train_batch_size=batch_size,
+    #     per_device_eval_batch_size=batch_size,
+    #     num_train_epochs=epoch,
+    #     weight_decay=0.01,
+    #     load_best_model_at_end=True,
+    #     metric_for_best_model=metric_name,
+    #     # push_to_hub=True,
+    #     # no_cuda=True
+    # )
+    # performence_calculator = PerformenceCalculator()
+    #
+    # for bert_model in bert_models:
+    #     print('************************************')
+    #     print(f'Started {bert_model} model training')
+    #     print('************************************')
+    #     try:
+    #         text_encoder = TextEncoder(bert_model, labels)
+    #         encoded_dataset = my_dataset_dict.map(text_encoder.preprocess_data, batched=True,
+    #                                               remove_columns=my_dataset_dict['train'].column_names)
+    #         encoded_dataset.set_format("torch")
+    #         model = AutoModelForSequenceClassification.from_pretrained(bert_model,
+    #                                                                    problem_type="multi_label_classification",
+    #                                                                    num_labels=len(labels),
+    #                                                                    id2label=id2label,
+    #                                                                    label2id=label2id,
+    #                                                                    ignore_mismatched_sizes=True)
+    #
+    #         #forward pass
+    #         outputs = model(input_ids=encoded_dataset['train']['input_ids'][0].unsqueeze(0),
+    #                         labels=encoded_dataset['train'][0]['labels'].unsqueeze(0))
+    #
+    #         trainer = Trainer(
+    #             model,
+    #             args,
+    #             train_dataset=encoded_dataset["train"],
+    #             eval_dataset=encoded_dataset["test"],
+    #             tokenizer=text_encoder.tokenizer,
+    #             compute_metrics=performence_calculator.compute_metrics
+    #         )
+    #         trainer.train()
+    #         trainer.evaluate()
+    #         trainer.save_model(f"{DIR_MODEL_PYTORCH}{bert_model.replace('/', '_')}.pt")
+    #
+    #         text = "অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া"
+    #         encoding = text_encoder.tokenizer(text, return_tensors="pt")
+    #         encoding = {k: v.to(trainer.model.device) for k,v in encoding.items()}
+    #         outputs = trainer.model(**encoding)
+    #         logits = outputs.logits
+    #         # apply sigmoid + threshold
+    #         sigmoid = torch.nn.Sigmoid()
+    #         probs = sigmoid(logits.squeeze().cpu())
+    #         predictions = np.zeros(probs.shape)
+    #         predictions[np.where(probs >= 0.5)] = 1
+    #         # turn predicted id's into actual label names
+    #         predicted_labels = [id2label[idx] for idx, label in enumerate(predictions) if label == 1.0]
+    #         print(predicted_labels)
+    #     except Exception as e:
+    #
+    #         print('************************************')
+    #         print(f'error {bert_model} model training')
+    #         print(e)
+    #         print('************************************')
 
     calculate_accuracy_pytorch(bert_models, test)
 
