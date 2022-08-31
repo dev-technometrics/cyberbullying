@@ -1,0 +1,27 @@
+<View>
+  <Text name="text" value="$text"/>
+   <Header value="$predicted"/>
+  <View style="box-shadow: 2px 2px 5px #999;                padding: 20px; margin-top: 2em;                border-radius: 5px;">
+    <Header value="Choose text sentiment"/>
+    <Choices name="sentiment" toName="text" choice="multiple" showInLine="true">
+      <Choice value="corruption"/>
+      <Choice value="election"/>
+      <Choice value="politics - national"/>
+      <Choice value="religion"/>
+      <Choice value="accident"/>
+      <Choice value="sports"/>
+       <Choice value="health"/>
+      <Choice value="entertainment"/>
+      <Choice value="science/technology"/>
+      <Choice value="education"/>
+      <Choice value="politics - international"/>
+      <Choice value="political parties: gono adhikar parishad, bnp, awami league, jamaat"/>
+      <Choice value="development/projects: mega projects, padma bridge, metro rail, disaster relief, charity"/>
+      <Choice value="crime/cybercrime: kishor gang, suicide, eve-teasing, drugs, hijacking, harassment, hack"/>
+      <Choice value="politics - student: chhatrodol, chhatroleague, shibir"/>
+      <Choice value="business/economy: trade, inflation, entrepreneur, bank, vat tax, remittance, budget, stock exchange, export-import, unemployment"/>
+    </Choices>
+  </View>
+</View><!-- {
+  "data": {"text": "This is a great 3D movie that delivers everything almost right in your face."}
+} -->
