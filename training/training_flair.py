@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import torch
+import flair
 from flair.embeddings import TransformerDocumentEmbeddings
 from flair.models import TextClassifier
 from flair.trainers import ModelTrainer
@@ -12,6 +13,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trai
 from settings import DIR_RESOURCES, DIR_MODEL_PYTORCH
 from utils import make_dir_if_not_exists
 
+flair.device = torch.device("cpu")
 
 class FlairTrainer:
 
