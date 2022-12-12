@@ -19,14 +19,13 @@ from settings import MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL
 from training.training_fasttext import FasttextTrainer
 from training.training_flair import FlairTrainer
 
-def train_pytorch(bert_models, train, test):
+def train_pytorch(bert_models, train, test, text_column, label_column):
     text_cleaner = TextCleaner()
     data = train
-    data['text'] = data['text'].apply(text_cleaner.clean_text_bn)
-    data = data.iloc[:, :-1]
-    train = train.iloc[:, :-1]
-    test = test.iloc[:, :-1]
-    labels = list(data.columns[:-1])
+    data[text_column] = data[text_column].apply(text_cleaner.clean_text_bn)
+    train = train[[text_column, label_column]]
+    test = test[[text_column, label_column]]
+    labels = list(data[label_column].unique())
     train_dataset = Dataset.from_dict(train)
     test_dataset = Dataset.from_dict(test)
     my_dataset_dict = datasets.DatasetDict({"train": train_dataset, "test": test_dataset})
@@ -35,9 +34,9 @@ def train_pytorch(bert_models, train, test):
     id2label = {idx: label for idx, label in enumerate(labels)}
     batch_size = 32
     metric_name = "f1"
-    epoch = 10
+    epoch = 2
     args = TrainingArguments(
-        f"bert-finetuned-multi-label-topic",
+        f"bert-finetuned-multi-label-cyberbullying",
         evaluation_strategy="epoch",
         save_strategy="epoch",
         learning_rate=2e-5,
@@ -57,11 +56,10 @@ def train_pytorch(bert_models, train, test):
         print(f'Started {bert_model} model training')
         print('************************************')
         text_encoder = TextEncoder(bert_model, labels)
-        encoded_dataset = my_dataset_dict.map(text_encoder.preprocess_data, batched=True,
-                                              remove_columns=my_dataset_dict['train'].column_names)
+        encoded_dataset = my_dataset_dict.map(text_encoder.preprocess_data, batched=True)
         encoded_dataset.set_format("torch")
         model = AutoModelForSequenceClassification.from_pretrained(bert_model,
-                                                                   problem_type="multi_label_classification",
+                                                                   # problem_type="multi_label_classification",
                                                                    num_labels=len(labels),
                                                                    id2label=id2label,
                                                                    label2id=label2id,
@@ -99,34 +97,37 @@ def train_pytorch(bert_models, train, test):
 
     calculate_accuracy_pytorch(bert_models, test)
 
-def train_flair(bert_models, test):
-    # for bert_model in bert_models:
-    #     print('************************************')
-    #     print(f'Started {bert_model} model training')
-    #     print('************************************')
-    #
-    #     try:
-    #         flair_trainer = FlairTrainer(label_type='topic')
-    #
-    #         model_path = f'{DIR_MODEL_FLAIR}{bert_model.replace("/", "_")}'
-    #
-    #         flair_trainer.train(pretrained_model=bert_model,
-    #                             is_multi_label=True,
-    #                             model_path=model_path,
-    #                             data_folder=DIR_DATASET_FASTTEXT)
-    #
-    #         labels = flair_trainer.predict(model_path=f'{model_path}/final-model.pt',
-    #             text='অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া')
-    #         print(labels)
-    #     except Exception as e:
-    #         print('************************************')
-    #         print(f'error {bert_model} model training')
-    #         print(e)
-    #         print('************************************')
+def train_flair(bert_models, test, text_column, label_column):
+    for bert_model in bert_models:
+        print('************************************')
+        print(f'Started {bert_model} model training')
+        print('************************************')
 
-    calculate_accuracy_flair(bert_models, test)
+        try:
+            flair_trainer = FlairTrainer(label_type='cyberbullying')
 
-def train_fastext(test):
+            model_path = f'{DIR_MODEL_FLAIR}{bert_model.replace("/", "_")}'
+
+            # flair_trainer.train(pretrained_model=bert_model,
+            #                     is_multi_label=False,
+            #                     model_path=model_path,
+            #                     data_folder=DIR_DATASET_FASTTEXT)
+
+            labels = flair_trainer.predict(model_path=f'{model_path}/final-model.pt',
+
+                text='অবশেষে জাতীয় পার্টি স্বীকার করলো তারা রাতের ভোটে বিরোধীদল হয়েছে! মুহাম্মদ রাশেদ খাঁন আগামী নির্বাচনে বিরোধীদল হতে মরিয়া')
+
+            print(labels)
+
+        except Exception as e:
+            print('************************************')
+            print(f'error {bert_model} model training')
+            print(e)
+            print('************************************')
+
+    calculate_accuracy_flair(bert_models, test, text_column, label_column)
+
+def train_fastext(test, text_column, label_column):
     fasttext_params = {
         'input': f'{DIR_DATASET_FASTTEXT}train.txt',
         'lr': 0.1,
@@ -141,23 +142,28 @@ def train_fastext(test):
     model_filepath = f'{DIR_MODEL_FASTTEXT}final-model_pretrained.bin'
     fasttext_trainer = FasttextTrainer(fasttext_params)
     fasttext_trainer.train_supervised(model_filepath)
-    calculate_accuracy_fasttext('fasttext-pretrained', model_filepath, test)
+    calculate_accuracy_fasttext('fasttext-pretrained', model_filepath, test, text_column, label_column)
 
 if __name__ == "__main__":
-
+    text_column = 'text'
+    label_column = 'label'
     data_preparation = DataPreparation()
-    data = pd.read_csv(f'{DIR_DATASET}formated.csv')
-    # data = data.sample(100, random_state=10)
+    data = pd.read_csv(f'{DIR_DATASET}cyberbullying.csv')
+    data = data.sample(500, random_state=10)
+    data[text_column] = data['comment']
+    data[label_column] = data[label_column].replace('not bully','not_bully')
+    # data.dropna(subset=[text_column, label_column], axis=1, inplace=True)
     train, test = train_test_split(data, test_size=0.2, random_state=0)
-    # data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt')
-    # data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt')
+
+    data_preparation.prepare_for_fasttext(train, f'{DIR_DATASET_FASTTEXT}train.txt', text_column, label_column)
+    data_preparation.prepare_for_fasttext(test, f'{DIR_DATASET_FASTTEXT}test.txt', text_column, label_column)
 
 
     bert_models = [MODEL_BERT_MULTILANGUAL_CASED, MODEL_BERT_CESBUETNLP, MODEL_BERT_MONSOON_NLP,
                    MODEL_BERT_SAGORSARKAR, MODEL_BERT_INDIC_NER, MODEL_BERT_NURALSPACE, MODEL_BERT_INDIC_HATE_SPEECH,
                    MODEL_BERT_NEUROPARK_SAHAJ_NER, MODEL_BERT_NEUROPARK_SAHAJ]
-    # bert_models = [MODEL_BERT_NEUROPARK_SAHAJ]
 
-    train_flair(bert_models, test)
-    # train_fastext(test)
-    # train_pytorch(bert_models, train, test)
+    # bert_models = [MODEL_BERT_MULTILANGUAL_CASED]
+    train_flair(bert_models, test, text_column, label_column)
+    # train_fastext(test, text_column, label_column)
+    # train_pytorch(bert_models, train, test, text_column, label_column)

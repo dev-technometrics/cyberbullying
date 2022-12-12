@@ -28,7 +28,7 @@ class FasttextPredictor():
             self.label_dict[f'{l.replace(", ", "_").replace(": ", "_").replace(" ", "_").replace(" - ", "_").replace("/", "_")}'] = l
 
     def predict(self, text):
-        labels = self.classifier.predict(text, k=len(self.label2id))
+        labels = self.classifier.predict_labels(text, k=len(self.label2id))
         probs = labels[1]
         predictions = np.zeros(probs.shape)
         predictions[np.where(probs >= 0.333)] = 1
@@ -52,7 +52,7 @@ class PytorchPredictor():
             self.label_dict[f'{l.replace(", ", "_").replace(": ", "_").replace(" ", "_").replace(" - ", "_").replace("/", "_")}'] = l
 
     def predict(self, text):
-        labels = self.classifier.predict(text, k=len(self.label2id))
+        labels = self.classifier.predict_labels(text, k=len(self.label2id))
         probs = labels[1]
         predictions = np.zeros(probs.shape)
         predictions[np.where(probs >= 0.333)] = 1

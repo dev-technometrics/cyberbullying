@@ -41,7 +41,7 @@ class FlairTrainer:
         self.trainer.fine_tune(self.model_path,
                           learning_rate=5.0e-5,
                           mini_batch_size=4,
-                          max_epochs=10,
+                          max_epochs=2,
                           )
 
     def predict(self, model_path, text):
@@ -55,12 +55,12 @@ class FlairPredictor(FlairTrainer):
         super().__init__('topic')
         self.model_path = model_path
         self.classifier = TextClassifier.load(self.model_path)
-        with open( f"{DIR_RESOURCES}config.json") as file:
-            config = json.load(file)
-        self.label2id = config['label2id']
-        self.label_dict = {}
-        for l in self.label2id:
-            self.label_dict[f'{l.replace(", ", "_").replace(": ", "_").replace(" ", "_").replace(" - ", "_").replace("/", "_")}'] = l
+        # with open( f"{DIR_RESOURCES}config.json") as file:
+        #     config = json.load(file)
+        # self.label2id = config['label2id']
+        # self.label_dict = {}
+        # for l in self.label2id:
+        #     self.label_dict[f'{l.replace(", ", "_").replace(": ", "_").replace(" ", "_").replace(" - ", "_").replace("/", "_")}'] = l
     def predict(self, text):
         sentence = Sentence(text)
         self.classifier.predict(sentence)
@@ -76,12 +76,12 @@ class FlairPredictor(FlairTrainer):
         labels = self.get_predicted_labels(text)
         # if labels:
         #     print(0)
-        preds = [0 for i in range(len(self.label2id))]
-        for label in labels:
-            y = f'{label.replace(", ", "_").replace(": ", "_").replace(" ", "_").replace(" - ", "_").replace("/", "_")}'
-            l = self.label_dict[y]
-            preds[self.label2id[l]] = 1
-        return preds
+        # preds = [0 for i in range(len(self.label2id))]
+        # for label in labels:
+        #     y = f'{label.replace(", ", "_").replace(": ", "_").replace(" ", "_").replace(" - ", "_").replace("/", "_")}'
+        #     l = self.label_dict[y]
+        #     preds[self.label2id[l]] = 1
+        return labels[0]
 
 class PytorchModelPredictor():
     def __init__(self, bert_model, model_path):
