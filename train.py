@@ -108,10 +108,10 @@ def train_flair(bert_models, test, text_column, label_column):
 
             model_path = f'{DIR_MODEL_FLAIR}{bert_model.replace("/", "_")}'
 
-            # flair_trainer.train(pretrained_model=bert_model,
-            #                     is_multi_label=False,
-            #                     model_path=model_path,
-            #                     data_folder=DIR_DATASET_FASTTEXT)
+            flair_trainer.train(pretrained_model=bert_model,
+                                is_multi_label=False,
+                                model_path=model_path,
+                                data_folder=DIR_DATASET_FASTTEXT)
 
             labels = flair_trainer.predict(model_path=f'{model_path}/final-model.pt',
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     label_column = 'label'
     data_preparation = DataPreparation()
     data = pd.read_csv(f'{DIR_DATASET}cyberbullying.csv')
-    data = data.sample(500, random_state=10)
+    # data = data.sample(500, random_state=10)
     data[text_column] = data['comment']
     data[label_column] = data[label_column].replace('not bully','not_bully')
     # data.dropna(subset=[text_column, label_column], axis=1, inplace=True)

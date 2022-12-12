@@ -41,7 +41,7 @@ class FlairTrainer:
         self.trainer.fine_tune(self.model_path,
                           learning_rate=5.0e-5,
                           mini_batch_size=4,
-                          max_epochs=2,
+                          max_epochs=100,
                           )
 
     def predict(self, model_path, text):
